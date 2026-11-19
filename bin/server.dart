@@ -242,6 +242,7 @@ Response _notFound(Request req) {
 final _router = Router(notFoundHandler: _notFound)
   ..get('/', _rootHandler)
   ..get('/health', _healthHandler)
+  ..get('/health/db', _healthDbHandler)
   // Auth
   ..post('/auth/login', _loginHandler)
   ..post('/auth/register', _registerHandler)
@@ -269,12 +270,18 @@ Response _rootHandler(Request req) {
   return _json({'pesan': 'Backend DigiTrace jalan!'});
 }
 
-Future<Response> _healthHandler(Request req) async {
+// GET /health  -> hanya cek server hidup (selalu 200, dipakai health check hosting)
+Response _healthHandler(Request req) {
+  return _json({'status': 'ok'});
+}
+
+// GET /health/db  -> cek koneksi ke Supabase
+Future<Response> _healthDbHandler(Request req) async {
   try {
     await supabase.from('admin').select('id_admin').limit(1);
     return _json({'status': 'ok', 'database': 'terhubung'});
   } catch (e) {
-    print('HEALTH ERROR: $e');
+    print('HEALTH DB ERROR: $e');
     return _json({'status': 'gagal', 'database': 'tidak terhubung'}, status: 503);
   }
 }
